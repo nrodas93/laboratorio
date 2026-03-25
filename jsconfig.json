@@ -1,9 +1,13 @@
 {
     "compilerOptions": {
-        "module": "ES2015",
-        "target": "es2020",
+        "module": "none",
+        "target": "es6",
         "jsx": "preserve",
-        "strictFunctionTypes": true
+        "strictFunctionTypes": true,
+        "allowJs": true,
+        "types": [
+            "globals"
+        ]
     },
     "exclude": [
         "node_modules",
