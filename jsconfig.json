@@ -2,12 +2,17 @@
     "compilerOptions": {
         "module": "none",
         "target": "es6",
+        "strict": false,
+        "noImplicitAny": false,
+        "esModuleInterop": true,
         "jsx": "preserve",
-        "strictFunctionTypes": true,
+        "lib": [
+            "ES2015",
+            "DOM"
+        ],
+        "skipLibCheck": true,
         "allowJs": true,
-        "types": [
-            "globals"
-        ]
+        "checkJs": false
     },
     "exclude": [
         "node_modules",

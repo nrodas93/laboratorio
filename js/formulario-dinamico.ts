@@ -2,16 +2,35 @@
  * inicio
  */
 
-function loadForm(url: string, idcontainer: string) {
-    const container = document.getElementById(idcontainer);
+
+
+function loadForm(url: string, query: string) {
+    const container: HTMLElement = document.querySelector(query);
     if (container) {
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function(response) {
-                container.innerHTML = response;
+        container.innerHTML = '';
+        const iframe: HTMLIFrameElement = document.createElement('iframe');
+        iframe.src = url;
+        iframe.style.width = '100%';
+        iframe.style.border = 'none !important';
+        iframe.style.overflow = 'hidden';
+        iframe.scrolling = 'no';
+        iframe.setAttribute('seamless', 'seamless');
+        container.appendChild(iframe);
+        iframe.onload = () => {
+            if (iframe.contentWindow) {
+                const doc = iframe.contentWindow.document;
+                const body = doc.body;
+                const html = doc.documentElement;
+                const height = Math.max(
+                    body.scrollHeight,
+                    body.offsetHeight,
+                    html.clientHeight,
+                    html.scrollHeight,
+                    html.offsetHeight
+                );
+                iframe.style.height = (height + 20) + 'px';
             }
-        });
+        }
     }
 }
 
@@ -21,14 +40,15 @@ document.addEventListener("alpine:init", () => {
         if (evt.origin !== window.location.origin) return;
         const data = evt.data;
         if (data.type === 'dialog') {
-            console.log(data);
             window.dispatchEvent(new CustomEvent('dialog', {
                     detail: { ...data }
             }));
         }
     })
-
+    // combinar validaciones con validaciones que vienen de la base de datos
+    
     const listaValidaciones = {
+        ...window.validaciones,
         regex: (value: string, message: string = 'Valor invalido', regex: string) => {
             const testRegex = new RegExp(regex);
             if (value !== '' && !(testRegex.test(value))) {
@@ -36,15 +56,32 @@ document.addEventListener("alpine:init", () => {
             }
             return true;
         },
-        required: (value: string, message: string = 'Valor requerido') => {
+        requerido: (value: string, message: string = 'Valor requerido') => {
             if (value === '' || value === null || value === undefined) {
                 return message;
             }
             return true;
-        }
+        },
+        longitudMaxima: (value: string, message: string = 'Valor excede la longitud maxima', maxLength: number) => {
+            if (value !== '' && value.length > maxLength) {
+                return message;
+            }
+            return true;
+        },
+        longitudMinima: (value: string, message: string = 'Valor no cumple con la longitud minima', minLength: number) => {
+            if (value !== '' && value.length < minLength) {
+                return message;
+            }
+            return true;
+        }}
+    
 
-    }
+    
 
+
+    
+
+    // @ts-ignore
     Alpine.data("dialog", () => ({
         show: false,
         loading: false,
@@ -61,19 +98,17 @@ document.addEventListener("alpine:init", () => {
         }
     }))
 
-    const baseControl = (selector, required: boolean = false, validaciones: Array<Object> = []) => ({
+    const baseControl = (selector: string, required: boolean = false, validaciones: Array<Object> = []) => ({
         init() {
             if (this.required) {
                 this.validaciones.push({
-                    Metodo: 'required',
-                    Mensaje: 'Valor requerido',
+                    Metodo: 'requerido',
+                    Mensaje: 'Campo requerido',
                 })
             }
             this.initControl();
             this.$nextTick(() => {
-                
                 this.$watch('value', () => {
-                    console.log('watch triggered:', this.value)
                     this.validate()
                 });
             });
@@ -95,7 +130,6 @@ document.addEventListener("alpine:init", () => {
                 for (const validacion of this.validaciones) {
                     const argumentos = (validacion.Argumentos ?? "").split(",");
                     const resultado = listaValidaciones[validacion.Metodo](this.value, validacion.Mensaje, ...argumentos);
-                    console.log("resultado: ", resultado);
                     if (resultado !== true) {
                         error.textContent = resultado;
                         error.classList.add('show');
@@ -105,20 +139,21 @@ document.addEventListener("alpine:init", () => {
             
         }
     })
-
-
+    // @ts-ignore
     Alpine.data("textbox", (required: boolean = false, validaciones: Array<Object> = []) => {
         return {...baseControl("input",required, validaciones) };
     })
 
+    // @ts-ignore
     Alpine.data("textarea", (required: boolean = false, validaciones: Array<Object> = []) => {
         return {...baseControl("textarea",required, validaciones) };
     })
-
+    // @ts-ignore
     Alpine.data("select2", () => ({
         ...baseControl,
         initControl: () => {
-            $(this.$el.querySelector('select')).select2({
+            var $this: any = this;
+            $this && $($this.$el?.querySelector('select')).select2({
                 placeholder: 'Seleccione una opción',
                 allowClear: true
             });

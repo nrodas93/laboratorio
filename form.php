@@ -33,7 +33,25 @@
 
 
 <?php
+function textbox($campo, $incluirEtiqueta = true)
+{
+    $etiqueta = $incluirEtiqueta ? "<label for='" . $campo['Nombre'] . "'>" . $campo['Nombre'] . " " . $campo['Etiqueta'] . "</label>" : "";
+    return "<div x-data='textbox(" . ($campo['Requerido'] ? 'true' : 'false') . ", " . json_encode(isset($campo['Validaciones']) ? $campo['Validaciones'] : []) . ")' class='form-group'>
+    " . $etiqueta . "
+    <input type='text' x-model='registro.{$campo['TablaCampo']}' class='form-control' placeholder='" . $campo['Nombre'] . "' x-init='init()'>
+    <span class='error'></span>
+</div>";
+}
 
+function textarea($campo, $incluirEtiqueta = true)
+{
+    $etiqueta = $incluirEtiqueta ? "<label for='" . $campo['Nombre'] . "'>" . $campo['Nombre'] . " " . $campo['Etiqueta'] . "</label>" : "";
+    return "<div x-data='textarea(" . ($campo['Requerido'] ? 'true' : 'false') . "," . json_encode(isset($campo['Validaciones']) ? $campo['Validaciones'] : []) . ")'>
+    " . $etiqueta . "
+    <textarea class='form-control' x-model='registro.{$campo['TablaCampo']}' placeholder='" . $campo['Nombre'] . "' x-init='init()'></textarea>
+    <span class='error'></span>
+</div>";
+}
 // validaciones
 $validaciones = [
     [
@@ -55,6 +73,7 @@ $campos = [
         "TipoDatos" => "System.Text",
         "Control" => "textbox",
         "Orden" => 10,
+        'TablaCampo' => 'c_000000000001'
     ],
     [
         "Etiqueta" => "Topografía (082)",
@@ -64,6 +83,7 @@ $campos = [
         "TipoDatos" => "System.Text",
         "Control" => "textbox",
         "Orden" => 20,
+        'TablaCampo' => 'c_000000000002'
     ],
     [
         "Etiqueta" => "Topografía (082)",
@@ -73,6 +93,7 @@ $campos = [
         "TipoDatos" => "System.Text",
         "Control" => "textbox",
         "Orden" => 30,
+        'TablaCampo' => 'c_000000000003'
     ],
     [
         "Etiqueta" => "Topografía (082)",
@@ -82,7 +103,8 @@ $campos = [
         "TipoDatos" => "System.Text",
         "Control" => "textbox",
         "Orden" => 40,
-        "Validaciones" => $validaciones
+        "Validaciones" => $validaciones,
+        'TablaCampo' => 'c_000000000004'
     ],
     [
         "Etiqueta" => "Topografía (082)",
@@ -92,6 +114,7 @@ $campos = [
         "TipoDatos" => "",
         "Control" => "textbox",
         "Orden" => 50,
+        'TablaCampo' => 'c_000000000005'
     ],
     [
         "Etiqueta" => "500",
@@ -101,8 +124,12 @@ $campos = [
         "TipoDatos" => "System.TextArea",
         "Control" => "textarea",
         "Orden" => 60,
+        'TablaCampo' => 'c_000000000006'
     ]
 ];
+
+$registro = [];
+sc_lookup($registro, "SELECT * FROM db_biblioteca.DatosMaterial_000000000002 WHERE IdDatosMaterial = 1");
 
 // ordenear arreglo por orden
 usort($campos, function ($a, $b) {
@@ -120,36 +147,19 @@ $grupos = array_reduce($campos, function ($arreglo, $item) {
 }, []);
 
 // ordenar campos por orden
-foreach ($grupos as $etiqueta => $campos) {
+/*foreach ($grupos as $etiqueta => $campos) {
     usort($campos, function ($a, $b) {
         return $a['Orden'] <=> $b['Orden'];
     });
     $grupos[$etiqueta] = $campos;
-}
+}*/
 
-function textbox($campo, $incluirEtiqueta = true)
-{
-    $etiqueta = $incluirEtiqueta ? "<label for='" . $campo['Nombre'] . "'>" . $campo['Nombre'] . " " . $campo['Etiqueta'] . "</label>" : "";
-    return "<div x-data='textbox(" . ($campo['Requerido'] ? 'true' : 'false') . ", " . json_encode(isset($campo['Validaciones']) ? $campo['Validaciones'] : []) . ")' class='form-group'>
-    " . $etiqueta . "
-    <input type='text' class='form-control' placeholder='" . $campo['Nombre'] . "' x-model='value' x-init='init()'>
-    <span class='error'></span>
-</div>";
-}
 
-function textarea($campo, $incluirEtiqueta = true)
-{
-    $etiqueta = $incluirEtiqueta ? "<label for='" . $campo['Nombre'] . "'>" . $campo['Nombre'] . " " . $campo['Etiqueta'] . "</label>" : "";
-    return "<div x-data='textarea(" . ($campo['Requerido'] ? 'true' : 'false') . "," . json_encode(isset($campo['Validaciones']) ? $campo['Validaciones'] : []) . ")'>
-    " . $etiqueta . "
-    <textarea class='form-control' placeholder='" . $campo['Nombre'] . "' x-model='value' x-init='init()'></textarea>
-    <span class='error'></span>
-</div>";
-}
 
 ?>
 <div class="container">
-    <div class="row">
+    <?php /** Al usar alpinejs se debe pasar el registro como parametro al componente para que sea reactivo */ ?>
+    <div class="row" x-data="{ registro: <?= json_encode($registro[0]) ?> }">
         <?php foreach ($grupos as $etiqueta => $campos) { ?>
             <?php if (count($campos) == 1) { ?>
                 <div class="col-12">

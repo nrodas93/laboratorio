@@ -1,5 +1,7 @@
 {
   "devDependencies": {
+    "@types/select2": "^4.0.63",
+    "esbuild": "^0.27.4",
     "orclapex-js": "github:fuzziebrain/orclapex-js",
     "typescript": "^4.9.5"
   },
@@ -8,6 +10,7 @@
     "serve": "^14.2.3"
   },
   "scripts": {
-    "watch": "tsc --watch js/myalpine.ts"
+    "watch": "tsc --watch js/formulario-dinamico.ts",
+    "build": "tsc js/formulario-dinamico.ts && npx esbuild js/formulario-dinamico.js --minify --bundle --outfile=js/formulario-dinamico.min.js"
   }
 }

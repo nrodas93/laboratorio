@@ -22,16 +22,27 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 var _this = this;
-function loadForm(url, idcontainer) {
-    var container = document.getElementById(idcontainer);
+function loadForm(url, query) {
+    var container = document.querySelector(query);
     if (container) {
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function (response) {
-                container.innerHTML = response;
+        container.innerHTML = '';
+        var iframe_1 = document.createElement('iframe');
+        iframe_1.src = url;
+        iframe_1.style.width = '100%';
+        iframe_1.style.border = 'none !important';
+        iframe_1.style.overflow = 'hidden';
+        iframe_1.scrolling = 'no';
+        iframe_1.setAttribute('seamless', 'seamless');
+        container.appendChild(iframe_1);
+        iframe_1.onload = function () {
+            if (iframe_1.contentWindow) {
+                var doc = iframe_1.contentWindow.document;
+                var body = doc.body;
+                var html = doc.documentElement;
+                var height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+                iframe_1.style.height = (height + 20) + 'px';
             }
-        });
+        };
     }
 }
 document.addEventListener("alpine:init", function () {
@@ -40,7 +51,6 @@ document.addEventListener("alpine:init", function () {
             return;
         var data = evt.data;
         if (data.type === 'dialog') {
-            console.log(data);
             window.dispatchEvent(new CustomEvent('dialog', {
                 detail: __assign({}, data)
             }));
@@ -55,14 +65,29 @@ document.addEventListener("alpine:init", function () {
             }
             return true;
         },
-        required: function (value, message) {
+        requerido: function (value, message) {
             if (message === void 0) { message = 'Valor requerido'; }
             if (value === '' || value === null || value === undefined) {
                 return message;
             }
             return true;
+        },
+        longitudMaxima: function (value, message, maxLength) {
+            if (message === void 0) { message = 'Valor excede la longitud maxima'; }
+            if (value !== '' && value.length > maxLength) {
+                return message;
+            }
+            return true;
+        },
+        longitudMinima: function (value, message, minLength) {
+            if (message === void 0) { message = 'Valor no cumple con la longitud minima'; }
+            if (value !== '' && value.length < minLength) {
+                return message;
+            }
+            return true;
         }
     };
+    // @ts-ignore
     Alpine.data("dialog", function () { return ({
         show: false,
         loading: false,
@@ -86,14 +111,13 @@ document.addEventListener("alpine:init", function () {
                 var _this = this;
                 if (this.required) {
                     this.validaciones.push({
-                        Metodo: 'required',
-                        Mensaje: 'Valor requerido'
+                        Metodo: 'requerido',
+                        Mensaje: 'Campo requerido',
                     });
                 }
                 this.initControl();
                 this.$nextTick(function () {
                     _this.$watch('value', function () {
-                        console.log('watch triggered:', _this.value);
                         _this.validate();
                     });
                 });
@@ -117,7 +141,6 @@ document.addEventListener("alpine:init", function () {
                     var validacion = _c[_i];
                     var argumentos = ((_b = validacion.Argumentos) !== null && _b !== void 0 ? _b : "").split(",");
                     var resultado = listaValidaciones[validacion.Metodo].apply(listaValidaciones, __spreadArray([this.value, validacion.Mensaje], argumentos, false));
-                    console.log("resultado: ", resultado);
                     if (resultado !== true) {
                         error.textContent = resultado;
                         error.classList.add('show');
@@ -127,18 +150,23 @@ document.addEventListener("alpine:init", function () {
             }
         });
     };
+    // @ts-ignore
     Alpine.data("textbox", function (required, validaciones) {
         if (required === void 0) { required = false; }
         if (validaciones === void 0) { validaciones = []; }
         return __assign({}, baseControl("input", required, validaciones));
     });
+    // @ts-ignore
     Alpine.data("textarea", function (required, validaciones) {
         if (required === void 0) { required = false; }
         if (validaciones === void 0) { validaciones = []; }
         return __assign({}, baseControl("textarea", required, validaciones));
     });
+    // @ts-ignore
     Alpine.data("select2", function () { return (__assign(__assign({}, baseControl), { initControl: function () {
-            $(_this.$el.querySelector('select')).select2({
+            var _a;
+            var $this = _this;
+            $this && $((_a = $this.$el) === null || _a === void 0 ? void 0 : _a.querySelector('select')).select2({
                 placeholder: 'Seleccione una opción',
                 allowClear: true
             });

@@ -4,7 +4,7 @@
     <link rel="shortcut icon" href="./assets/images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -35,12 +35,20 @@
     <div id="formulario">
         <!--<iframe src="form.php" frameborder="0"></iframe>-->
     </div>
+    <div id="control_icono">
+        <input type="text" id="sc_hidden_icono">
+    </div>
 
 
-    <script src="js/myalpine.js?<?php echo time(); ?>"></script>
+    <script src="js/formulario-dinamico.js?<?php echo time(); ?>"></script>
+    <script src="js/controles.js?<?php echo time(); ?>"></script>
     <script defer>
-        loadForm('form.php', 'formulario');
+        //loadForm('form.php', '#formulario');
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarControl('IconList', '#control_icono');
+        });
     </script>
+
 </body>
 
 </html>
