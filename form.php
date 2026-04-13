@@ -1,3 +1,4 @@
+
 <style>
     fieldset {
         border: 1px solid #ccc;
@@ -33,12 +34,42 @@
 
 
 <?php
+
+function procesarFormulario($id_formulario, $idMaterial) {
+    $q_form = "select Tabla from db_biblioteca.Formulario where IdFormulario = $id_formulario";
+    sc_lookup_field($ds_form, $q_form);
+    $tabla = $ds_form[0]['Tabla'];
+    $q_existe = "select count(*) as total from $tabla where IdMaterial = $idMaterial";
+    sc_lookup_field($ds_existe, $q_existe);
+    $existe = $ds_existe[0]['total'];
+    if ($existe > 0) {
+        $q_update = "update $tabla set ";
+    } else {
+        $q_insert = "insert into $tabla (IdMaterial) values ($idMaterial)";
+        sc_exec_sql($q_insert);
+    }
+    
+    $request = ["body" => []];
+    $values = [];
+    foreach ($request['body'] as $key => $value) {
+        if (strpos($key, 'c_') === 0) {
+           $values[$key] = $value;
+        }
+    }
+    $q_update .= array_map(function ($key, $value) {
+        return "$key = '$value'";
+    }, array_keys($values), $values);
+    $q_update .= " where IdMaterial = $idMaterial";
+    sc_exec_sql($q_update);
+    
+
+}
 function textbox($campo, $incluirEtiqueta = true)
 {
     $etiqueta = $incluirEtiqueta ? "<label for='" . $campo['Nombre'] . "'>" . $campo['Nombre'] . " " . $campo['Etiqueta'] . "</label>" : "";
     return "<div x-data='textbox(" . ($campo['Requerido'] ? 'true' : 'false') . ", " . json_encode(isset($campo['Validaciones']) ? $campo['Validaciones'] : []) . ")' class='form-group'>
     " . $etiqueta . "
-    <input type='text' x-model='registro.{$campo['TablaCampo']}' class='form-control' placeholder='" . $campo['Nombre'] . "' x-init='init()'>
+    <input type='text' x-model='registro.{$campo['TablaColumna']}' class='form-control' placeholder='" . $campo['Nombre'] . "' x-init='init()'>
     <span class='error'></span>
 </div>";
 }
@@ -48,7 +79,7 @@ function textarea($campo, $incluirEtiqueta = true)
     $etiqueta = $incluirEtiqueta ? "<label for='" . $campo['Nombre'] . "'>" . $campo['Nombre'] . " " . $campo['Etiqueta'] . "</label>" : "";
     return "<div x-data='textarea(" . ($campo['Requerido'] ? 'true' : 'false') . "," . json_encode(isset($campo['Validaciones']) ? $campo['Validaciones'] : []) . ")'>
     " . $etiqueta . "
-    <textarea class='form-control' x-model='registro.{$campo['TablaCampo']}' placeholder='" . $campo['Nombre'] . "' x-init='init()'></textarea>
+    <textarea class='form-control' x-model='registro.{$campo['TablaColumna']}' placeholder='" . $campo['Nombre'] . "' x-init='init()'></textarea>
     <span class='error'></span>
 </div>";
 }

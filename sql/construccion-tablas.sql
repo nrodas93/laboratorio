@@ -1,7 +1,15 @@
+
+
+ALTER procedure [db_biblioteca].[sp_Construccion_Tablas]
+    @IdFormulario int
+
+as
+begin
+
 /*
  construccioon de tablas mssql
  **/
-declare @tabla nvarchar(50), @IdFormulario int;
+declare @tabla nvarchar(50);
 -- Creacion de tabla temporal para almacenar los nombres de las tablas
 if object_id('tempdb..#tablas') is not null drop table #tablas;
 if object_id('tempdb..#columnas') is not null drop table #columnas;
@@ -14,20 +22,21 @@ create table #columnas (
 IdFormularioCampo int,
 nombre nvarchar(50),
 tipo nvarchar(50),
-requerido bit
+requerido bit,
+descripcion nvarchar(4000)
 );
 
 -- Insercion de los nombres de las tablas
 insert into #tablas (tabla, IdFormulario)
 select concat('DatosMaterial_', right(concat('000000000000', IdFormulario), 12)), IdFormulario
-from db_biblioteca.Formulario where IdFormulario = 2 and audRegistroEliminado = 0;
+from db_biblioteca.Formulario where IdFormulario = @IdFormulario and audRegistroEliminado = 0;
 
 
 while (select count(*) from #tablas) > 0
 begin
     begin try
         select @tabla = tabla, @IdFormulario = IdFormulario from #tablas;
-        insert into #columnas (IdFormularioCampo, nombre, tipo, requerido)
+        insert into #columnas (IdFormularioCampo, nombre, tipo, requerido, descripcion)
         select fc.IdFormularioCampo, concat('c_', right(concat('000000000000', fc.IdCampo), 12)), 
         case td.Nombre 
             when 'System.String' then 'nvarchar(1000)'
@@ -40,14 +49,21 @@ begin
             when 'System.Guid' then 'nvarchar(1000)'
             when 'System.Object' then 'nvarchar(1000)'
             else 'nvarchar(1000)'
-        end, Requerido
+        end, Requerido, c.Descripcion
         from db_biblioteca.FormularioCampo fc inner join db_biblioteca.Campo c on c.IdCampo = fc.IdCampo 
         inner join db_sistema.TipoDato td on c.IdTipoDato = td.IdTipoDato
         where fc.IdFormulario = @IdFormulario and fc.audRegistroEliminado = 0;
         declare @columnas nvarchar(max), @script_create nvarchar(max), @script_alter nvarchar(max), @script_drop nvarchar(max),
         @script_count nvarchar(max), @count int;
-        select @columnas = string_agg(concat('[', nombre, '] ', tipo, case when requerido = 1 then ' not null' else '' end), ', ') from #columnas;
+        select @columnas = string_agg(concat('[', nombre, '] ', tipo), ', ') from #columnas;
         
+        -- añadir los las descripciones como comentarios en la tabla
+        declare @comentarios nvarchar(max);
+        select @comentarios = string_agg(concat('comment on column db_biblioteca.', @tabla, '.', nombre, ' is ''', replace(descripcion, '''', ''''''), ''''), '; ') from #columnas
+        where descripcion is not null and descripcion != '';
+        --print @comentarios;
+        exec(@comentarios);
+
         -- si tabla existe pero no tiene datos, eliminarla y volver a crearla
         if object_id('db_biblioteca.' + @tabla) is not null
         begin
@@ -62,14 +78,16 @@ begin
         if object_id('db_biblioteca.' + @tabla) is not null 
         begin
             -- si existe la tabla, verificar insertar las columnas que no existen
-            declare @columnas_existentes nvarchar(max);
-            select @columnas_existentes = string_agg(concat('[', nombre, '] ', tipo, case when requerido = 1 then ' not null' else '' end), ', ') from #columnas where nombre not in (
+            declare @columnas_no_existentes nvarchar(max);
+            select @columnas_no_existentes = string_agg(concat('[', nombre, '] ', tipo), ', ') from #columnas where nombre not in (
                 select nombre from sys.columns where object_id = object_id('db_biblioteca.' + @tabla)
             );
-            set @script_alter = concat('alter table [db_biblioteca].[', @tabla, '] add ', @columnas_existentes);
-            --print @script_alter;
-            exec(@script_alter);
-
+            if @columnas_no_existentes is not null
+            begin
+                set @script_alter = concat('alter table [db_biblioteca].[', @tabla, '] add ', @columnas_no_existentes);
+                --print @script_alter;
+                exec(@script_alter);
+            end
         end
         else
         begin
@@ -101,5 +119,7 @@ begin
         break;
     end catch;
 
+
+end
 
 end

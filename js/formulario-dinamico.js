@@ -22,12 +22,61 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 var _this = this;
-function loadForm(url, query) {
+var formulario_init = /** @class */ (function () {
+    function formulario_init(id_frame, container, acciones) {
+        var _this = this;
+        this.el_frame = null;
+        if (typeof container === 'string') {
+            container = document.querySelector(container);
+        }
+        container.innerHTML = '';
+        this.el_frame = document.createElement('iframe');
+        //this.el_frame.src;
+        this.el_frame.id = id_frame;
+        this.el_frame.style.width = '100%';
+        this.el_frame.style.border = 'none !important';
+        this.el_frame.style.overflow = 'hidden';
+        this.el_frame.scrolling = 'no';
+        this.el_frame.setAttribute('seamless', 'seamless');
+        container.appendChild(this.el_frame);
+        this.el_frame.onload = function () {
+            if (_this.el_frame.contentWindow) {
+                var doc = _this.el_frame.contentWindow.document;
+                var body = doc.body;
+                var html = doc.documentElement;
+                var height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+                _this.el_frame.style.height = (height + 20) + 'px';
+            }
+        };
+        window.addEventListener('message', function (evt) {
+            if (evt.origin !== window.location.origin)
+                return;
+            var data = evt.data;
+            for (var key in acciones) {
+                if (data.type === 'formulario' && data.accion === key) {
+                    acciones[key].call(_this, data);
+                }
+            }
+        });
+    }
+    formulario_init.prototype.cambiarUrl = function (url) {
+        this.el_frame.src = url;
+    };
+    formulario_init.prototype.ejecutarAccion = function (accion) {
+        if (this.el_frame) {
+            this.el_frame.contentWindow.postMessage({ type: 'formulario', accion: accion, id_frame: this.el_frame.id }, window.location.origin);
+        }
+    };
+    return formulario_init;
+}());
+function loadForm(url, query, id_frame, accionGuardar) {
+    if (accionGuardar === void 0) { accionGuardar = function () { }; }
     var container = document.querySelector(query);
     if (container) {
         container.innerHTML = '';
         var iframe_1 = document.createElement('iframe');
         iframe_1.src = url;
+        iframe_1.id = id_frame;
         iframe_1.style.width = '100%';
         iframe_1.style.border = 'none !important';
         iframe_1.style.overflow = 'hidden';
@@ -43,7 +92,37 @@ function loadForm(url, query) {
                 iframe_1.style.height = (height + 20) + 'px';
             }
         };
+        window.addEventListener('message', function (evt) {
+            if (evt.origin !== window.location.origin)
+                return;
+            var data = evt.data;
+            if (data.type === 'formulario' && data.accion === 'guardar') {
+                accionGuardar();
+            }
+        });
+        // objeto a nivel de windows del formulario del iframe para que pueda ser llamado desde el formulario
+        window[id_frame] = {
+            guardar: function () {
+                iframe_1.contentWindow.postMessage({ type: 'formulario', accion: 'guardar', id_frame: id_frame }, window.location.origin);
+            }
+        };
     }
+}
+function ejecutarApi(data, url, metodo, evento) {
+    if (metodo === void 0) { metodo = 'POST'; }
+    if (evento === void 0) { evento = 'formulario'; }
+    $.ajax({
+        type: metodo,
+        url: url,
+        data: data,
+        success: function (response) {
+            console.log("Respuesta del servidor: ", response);
+            window.top.postMessage({ type: 'formulario', accion: evento, response: response }, window.location.origin);
+        },
+        error: function (error) {
+            console.error("Error: ", error);
+        }
+    });
 }
 document.addEventListener("alpine:init", function () {
     window.addEventListener('message', function (evt) {
@@ -55,38 +134,37 @@ document.addEventListener("alpine:init", function () {
                 detail: __assign({}, data)
             }));
         }
+        /*if (data.type === 'formulario' && data.accion === 'guardar') {
+            alert(data.id_frame);
+        }*/
     });
-    var listaValidaciones = {
-        regex: function (value, message, regex) {
+    // combinar validaciones con validaciones que vienen de la base de datos
+    var listaValidaciones = __assign(__assign({}, window.validaciones), { regex: function (value, message, regex) {
             if (message === void 0) { message = 'Valor invalido'; }
             var testRegex = new RegExp(regex);
             if (value !== '' && !(testRegex.test(value))) {
                 return message;
             }
             return true;
-        },
-        requerido: function (value, message) {
+        }, requerido: function (value, message) {
             if (message === void 0) { message = 'Valor requerido'; }
             if (value === '' || value === null || value === undefined) {
                 return message;
             }
             return true;
-        },
-        longitudMaxima: function (value, message, maxLength) {
+        }, longitudMaxima: function (value, message, maxLength) {
             if (message === void 0) { message = 'Valor excede la longitud maxima'; }
             if (value !== '' && value.length > maxLength) {
                 return message;
             }
             return true;
-        },
-        longitudMinima: function (value, message, minLength) {
+        }, longitudMinima: function (value, message, minLength) {
             if (message === void 0) { message = 'Valor no cumple con la longitud minima'; }
             if (value !== '' && value.length < minLength) {
                 return message;
             }
             return true;
-        }
-    };
+        } });
     // @ts-ignore
     Alpine.data("dialog", function () { return ({
         show: false,
@@ -112,7 +190,7 @@ document.addEventListener("alpine:init", function () {
                 if (this.required) {
                     this.validaciones.push({
                         Metodo: 'requerido',
-                        Mensaje: 'Campo requerido',
+                        Mensaje: 'Campo requerido'
                     });
                 }
                 this.initControl();

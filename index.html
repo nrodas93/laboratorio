@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,19 +8,20 @@
 
 
     <link href="css/primeicons.css" rel="stylesheet">
-    <link href="css/primeng.css"  rel="stylesheet">
-    <link href="css/primeng-theme.css"  rel="stylesheet">
+    <link href="css/primeng.css" rel="stylesheet">
+    <link href="css/primeng-theme.css" rel="stylesheet">
     <link href="css/primeflex.css" rel="stylesheet">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/smoothness/jquery-ui.css">
     <title>Document</title>
 
 </head>
+
 <body>
-    <input type="text"  id="maximo">
+    <input type="text" id="maximo">
     <textarea name="palabras" id="palabras" cols="30" rows="10"></textarea>
     <span id="contador"></span>
     <div id="contenedor"></div>
-    <table id="tabla"> 
+    <table id="tabla">
         <thead>
             <tr>
                 <th> RESULTADO </th>
@@ -32,60 +34,61 @@
             </tr>
         </tbody>
     </table>
-    <div class="plg_radio_group" data-lista-valores="normal=normal:anormal=anormal" data-valor="normal" 
-    data-id="1"></div>
+    <div class="plg_radio_group" data-lista-valores="normal=normal:anormal=anormal" data-valor="normal" data-id="1">
+    </div>
     <input type="hidden" value="#MINUTO_1#">
-    <script >
+    <script>
         var exports = {};
     </script>
     <script src="js/jquery.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js" integrity="sha256-eTyxS0rkjpLEo16uXTS0uVCS4815lc40K2iVpWDvdSY=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"
+        integrity="sha256-eTyxS0rkjpLEo16uXTS0uVCS4815lc40K2iVpWDvdSY=" crossorigin="anonymous"></script>
     <script src="js/handlebars.min.js"></script>
     <script src="js/plugin.js?v1.3"></script>
-    <script >
+    <script>
         var apex;
         apex.jQuery = $;
-        function confirmarDialogo(titulo, contenedor, mensaje,confirm_label, cancel_label, confirm_handler = function (){}, cancel_handler = function () {}) {
+        function confirmarDialogo(titulo, contenedor, mensaje, confirm_label, cancel_label, confirm_handler = function () { }, cancel_handler = function () { }) {
             var botones = {};
             botones[confirm_label] = function () {
                 if (typeof confirm_handler == "function") {
-                      confirm_handler(apex.jQuery(this));
-                } 
+                    confirm_handler(apex.jQuery(this));
+                }
                 //dialog("close");
             }
-            botones[cancel_label] = function() {
+            botones[cancel_label] = function () {
                 cancel_handler();
                 apex.jQuery(this).dialog("close");
-              };
+            };
             apex.jQuery(contenedor + '_heading').html(mensaje)
             apex.jQuery(contenedor)
-            .dialog({
-              modal: true,
-              open: function() {
-                $(this).parent().find(".ui-dialog-title").append("<span class='title'>" + titulo + "</span>");
-              },
-              title: '',
-              zIndex: 10000,
-              autoOpen: true,
-              width: '500px',
-              resizable: false,
-              buttons: botones,
-              close: function(event, ui) {
-                ///apex.jQuery(this).remove();
-              }
-            });
+                .dialog({
+                    modal: true,
+                    open: function () {
+                        $(this).parent().find(".ui-dialog-title").append("<span class='title'>" + titulo + "</span>");
+                    },
+                    title: '',
+                    zIndex: 10000,
+                    autoOpen: true,
+                    width: '500px',
+                    resizable: false,
+                    buttons: botones,
+                    close: function (event, ui) {
+                        ///apex.jQuery(this).remove();
+                    }
+                });
         }
-        confirmarDialogo("Confirmar borrado", "Seguro que desea borrar","Si", "No", function () {
+        confirmarDialogo("Confirmar borrado", "Seguro que desea borrar", "Si", "No", function () {
             alert('confirmar borrado');
         });
-        function perfil(nombre,  edad,  cargo) {
+        function perfil(nombre, edad, cargo) {
             alert(nombre + ' ' + edad + ' ' + cargo)
         }
         var mensaje = new Promise(function (resolve, reject) {
-            setTimeout(()  => { 
-                 resolve('hecho');
-            },  5000)
-         });
+            setTimeout(() => {
+                resolve('hecho');
+            }, 5000)
+        });
         $("#palabras").on('change', async function (e) {
             var $this = $(this);
             var m = await mensaje;
@@ -105,8 +108,8 @@
             }
         };
 
-    
- 
+
+
 
         /*(function ($) {
 
@@ -140,8 +143,15 @@
 
         } )($);*/
         /**$("#contenedor").carusel( {} );*/
-    
+
+        $etapa = cargarModelo("db_biblioteca.Etapa", "Nombre,Descripcion", { IdEtapa }, "IdEtapa");
+
+
+        if (strtolower(ScTexto:: quitarAcentos($etapa -> Nombre)) != 'catalogacion') {
+            sc_block_display("bl_catalogacion", "off");
+        }
 
     </script>
 </body>
+
 </html>

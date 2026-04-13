@@ -11,6 +11,6 @@
   },
   "scripts": {
     "watch": "tsc --watch js/formulario-dinamico.ts",
-    "build": "tsc js/formulario-dinamico.ts && npx esbuild js/formulario-dinamico.js --minify --bundle --outfile=js/formulario-dinamico.min.js"
+    "build": "tsc js/formulario-dinamico.ts && npx esbuild js/formulario-dinamico.js --minify --bundle --outfile=js/formulario-dinamico.min.js && echo 'Build completo' %TIME%"
   }
 }

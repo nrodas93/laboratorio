@@ -10,6 +10,16 @@ function sc_lookup(&$dataset, $query) {
     $dataset = $r->fetchAll();
 }
 
+function sc_lookup_field(&$dataset, $query) {
+    $r = db_query($query);
+    $dataset = $r->fetch();
+}
+
+function sc_exec_sql($query) {
+    $r = db_query($query);
+    return $r->rowCount();
+}
+
 function db_query($query) {
     try {
         $pdo = new PDO("pgsql:host=localhost;dbname=test", "root", "", [
