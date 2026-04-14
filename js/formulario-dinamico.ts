@@ -2,7 +2,21 @@
  * inicio
  */
 
-
+interface IBaseControl {
+        init: () => void;
+        initControl: () => void;
+        element: () => HTMLElement;
+        value: string;
+        field: string;
+        required: boolean;
+        validaciones: Array<Object>;
+        validate: () => void;
+        $dispatch?: (event: string, detail?: any) => void;
+        registro?: { [index: string]: string | number | boolean | Array<string> };
+    }
+interface IBaseControlSelect extends IBaseControl {
+    ismulti: boolean;
+}
 
 class formulario_init {
     el_frame: HTMLIFrameElement | null = null;
@@ -181,7 +195,7 @@ document.addEventListener("alpine:init", () => {
         }
     }))
 
-    const baseControl = (selector: string, required: boolean = false, validaciones: Array<Object> = []) => ({
+    const baseControl = (field: string,selector: string, required: boolean = false, validaciones: Array<Object> = []): IBaseControl => ({
         init() {
             if (this.required) {
                 this.validaciones.push({
@@ -191,7 +205,7 @@ document.addEventListener("alpine:init", () => {
             }
             this.initControl();
             this.$nextTick(() => {
-                this.$watch('value', () => {
+                this.$watch('value', (value: any) => {
                     this.validate()
                 });
             });
@@ -199,9 +213,11 @@ document.addEventListener("alpine:init", () => {
         },
         initControl() {},
         element() {
-            return this.$el.querySelector(selector);
+            const el = this.$el.querySelector(selector);
+            return el;
         },
         value: '',
+        field: field,
         required: required,
         validaciones: validaciones,
         validate() {
@@ -223,22 +239,36 @@ document.addEventListener("alpine:init", () => {
         }
     })
     // @ts-ignore
-    Alpine.data("textbox", (required: boolean = false, validaciones: Array<Object> = []) => {
-        return {...baseControl("input",required, validaciones) };
+    Alpine.data("textbox", (field: string, required: boolean = false, validaciones: Array<Object> = []) => {
+        return {...baseControl(field,"input",required, validaciones) };
     })
 
     // @ts-ignore
-    Alpine.data("textarea", (required: boolean = false, validaciones: Array<Object> = []) => {
-        return {...baseControl("textarea",required, validaciones) };
+    Alpine.data("textarea", (field: string, required: boolean = false, validaciones: Array<Object> = []) => {
+        return {...baseControl(field,"textarea",required, validaciones) };
     })
     // @ts-ignore
-    Alpine.data("select2", () => ({
-        ...baseControl,
-        initControl: () => {
-            var $this: any = this;
-            $this && $($this.$el?.querySelector('select')).select2({
-                placeholder: 'Seleccione una opción',
-                allowClear: true
+    Alpine.data("select2", (field: string, ismulti: boolean = false, required: boolean = false, validaciones: Array<Object> = []): IBaseControlSelect => ({
+        ...baseControl(field,"select",required, validaciones),
+        ismulti: ismulti,
+        initControl() {
+            var $this: IBaseControlSelect = this ;
+            $($this.element()).select2({
+                allowClear: true,
+                multiple: this.ismulti,
+
+            });
+            if ($this.registro[$this.field] && $this.registro[$this.field] !== '') {
+                const val = $this.ismulti ? ($this.registro[$this.field] as string).split(";") : $this.registro[$this.field];
+                console.log($this.field, val);
+                $($this.element()).val(val as any);
+                $($this.element()).trigger('change');
+            }
+
+            $($this.element()).on('change', (e: any) => {
+                const val =  $this.ismulti ? $(e.target).val().join(";") : $(e.target).val();
+                $this.value = val;
+                $this.$dispatch('change-select2', { value: val, field: $this.field });
             });
         }
     }

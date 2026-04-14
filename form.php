@@ -1,4 +1,13 @@
-
+<html>
+<head>
+    <link rel="shortcut icon" href="./assets/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
 <style>
     fieldset {
         border: 1px solid #ccc;
@@ -31,9 +40,11 @@
         display: block;
     }
 </style>
-
+<body>
 
 <?php
+
+require_once 'sc_functions/Formulario.php';
 
 function procesarFormulario($id_formulario, $idMaterial) {
     $q_form = "select Tabla from db_biblioteca.Formulario where IdFormulario = $id_formulario";
@@ -64,7 +75,7 @@ function procesarFormulario($id_formulario, $idMaterial) {
     
 
 }
-function textbox($campo, $incluirEtiqueta = true)
+/*function textbox($campo, $incluirEtiqueta = true)
 {
     $etiqueta = $incluirEtiqueta ? "<label for='" . $campo['Nombre'] . "'>" . $campo['Nombre'] . " " . $campo['Etiqueta'] . "</label>" : "";
     return "<div x-data='textbox(" . ($campo['Requerido'] ? 'true' : 'false') . ", " . json_encode(isset($campo['Validaciones']) ? $campo['Validaciones'] : []) . ")' class='form-group'>
@@ -83,6 +94,18 @@ function textarea($campo, $incluirEtiqueta = true)
     <span class='error'></span>
 </div>";
 }
+
+function select2($campo, $incluirEtiqueta = true) {
+    $esMultiple = $campo["Control"] == "select2-multi";
+    $etiqueta = $incluirEtiqueta ? "<label for='" . $campo['Nombre'] . "'>" . $campo['Nombre'] . " " . $campo['Etiqueta'] . "</label>" : "";
+    return "<div x-data='select2(" . ($campo['Requerido'] ? 'true' : 'false') . ", " . json_encode(isset($campo['Validaciones']) ? $campo['Validaciones'] : []) . ")'>
+    " . $etiqueta . "
+    <select class='form-control' x-model='registro.{$campo['TablaColumna']}' placeholder='" . $campo['Nombre'] . "' x-init='init()'>
+    <option value=''>Seleccione una opción</option>
+    </select>
+    <span class='error'></span>
+</div>";
+}*/
 // validaciones
 $validaciones = [
     [
@@ -104,7 +127,7 @@ $campos = [
         "TipoDatos" => "System.Text",
         "Control" => "textbox",
         "Orden" => 10,
-        'TablaCampo' => 'c_000000000001'
+        'TablaColumna' => 'c_000000000001'
     ],
     [
         "Etiqueta" => "Topografía (082)",
@@ -114,7 +137,7 @@ $campos = [
         "TipoDatos" => "System.Text",
         "Control" => "textbox",
         "Orden" => 20,
-        'TablaCampo' => 'c_000000000002'
+        'TablaColumna' => 'c_000000000002'
     ],
     [
         "Etiqueta" => "Topografía (082)",
@@ -124,7 +147,7 @@ $campos = [
         "TipoDatos" => "System.Text",
         "Control" => "textbox",
         "Orden" => 30,
-        'TablaCampo' => 'c_000000000003'
+        'TablaColumna' => 'c_000000000003'
     ],
     [
         "Etiqueta" => "Topografía (082)",
@@ -135,7 +158,7 @@ $campos = [
         "Control" => "textbox",
         "Orden" => 40,
         "Validaciones" => $validaciones,
-        'TablaCampo' => 'c_000000000004'
+        'TablaColumna' => 'c_000000000004'
     ],
     [
         "Etiqueta" => "Topografía (082)",
@@ -145,7 +168,7 @@ $campos = [
         "TipoDatos" => "",
         "Control" => "textbox",
         "Orden" => 50,
-        'TablaCampo' => 'c_000000000005'
+        'TablaColumna' => 'c_000000000005'
     ],
     [
         "Etiqueta" => "500",
@@ -153,14 +176,22 @@ $campos = [
         "Descripcion" => "",
         "Requerido" => true,
         "TipoDatos" => "System.TextArea",
-        "Control" => "textarea",
+        "Control" => "select2",
+        'Valores' => '1;2;3;4;5',
+        'Multiple' => true,
         "Orden" => 60,
-        'TablaCampo' => 'c_000000000006'
+        'TablaColumna' => 'c_000000000006'
     ]
 ];
 
-$registro = [];
-sc_lookup($registro, "SELECT * FROM db_biblioteca.DatosMaterial_000000000002 WHERE IdDatosMaterial = 1");
+$registro = [
+    [
+        "__id" => "0",
+        "c_000000000006" => "3;4;5",
+        'c_000000000002' => '123'
+    ]
+];
+//sc_lookup($registro, "SELECT * FROM db_biblioteca.DatosMaterial_000000000002 WHERE IdDatosMaterial = 1");
 
 // ordenear arreglo por orden
 usort($campos, function ($a, $b) {
@@ -190,12 +221,13 @@ $grupos = array_reduce($campos, function ($arreglo, $item) {
 ?>
 <div class="container">
     <?php /** Al usar alpinejs se debe pasar el registro como parametro al componente para que sea reactivo */ ?>
-    <div class="row" x-data="{ registro: <?= json_encode($registro[0]) ?> }">
+    <div class="row" x-data='{ registro: <?=  json_encode($registro[0]) ?> }' @change-select2="registro[$event.detail.field] = $event.detail.value">
+
         <?php foreach ($grupos as $etiqueta => $campos) { ?>
             <?php if (count($campos) == 1) { ?>
                 <div class="col-12">
-                    <? if (function_exists($campos[0]['Control'])) { ?>
-                        <?= call_user_func($campos[0]['Control'], $campos[0], true) ?>
+                    <? if (method_exists('Formulario', $campos[0]['Control'])) { ?>
+                        <?= Formulario::{$campos[0]['Control']}($campos[0], true) ?>
                     <? } else { ?>
                         <div class="col-12">
                             <p>Error: No se encontro el control "<?= $campos[0]['Control'] ?>"</p>
@@ -207,8 +239,8 @@ $grupos = array_reduce($campos, function ($arreglo, $item) {
                     <fieldset>
                         <legend><?= $etiqueta ?></legend>
                         <?php foreach ($campos as $campo) { ?>
-                            <? if (function_exists($campo['Control'])) { ?>
-                                <?= call_user_func($campo['Control'], $campo, false) ?>
+                            <? if (method_exists('Formulario', $campo['Control'])) { ?>
+                                <?= Formulario::{$campo['Control']}($campo, false) ?>
                             <? } else { ?>
                                 <div class="col-12">
                                     <p>Error: No se encontro el control "<?= $campo['Control'] ?>"</p>
@@ -219,9 +251,12 @@ $grupos = array_reduce($campos, function ($arreglo, $item) {
                 </div>
             <?php } ?>
         <?php } ?>
+
+        <pre x-text="JSON.stringify(registro, null, 2)"></pre>
     </div>
 </div>
 
+<script src="js/formulario-dinamico.js?v=<?= time() ?>"></script>
 
 <?php /*
 <button type="button" onclick="openDialog('https://www.google.com/webhp?igu=1')">Open Dialog</button>
@@ -233,6 +268,6 @@ $grupos = array_reduce($campos, function ($arreglo, $item) {
         }, window.location.origin);
     }*/
 ?>
-</script>
 
+</body>
 </html>

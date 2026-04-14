@@ -21,7 +21,6 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
-var _this = this;
 var formulario_init = /** @class */ (function () {
     function formulario_init(id_frame, container, acciones) {
         var _this = this;
@@ -117,7 +116,7 @@ function ejecutarApi(data, url, metodo, evento) {
         data: data,
         success: function (response) {
             console.log("Respuesta del servidor: ", response);
-            window.top.postMessage({ type: 'formulario', accion: evento, response: response }, window.location.origin);
+            window.parent.postMessage({ type: 'formulario', accion: evento, response: response }, window.location.origin);
         },
         error: function (error) {
             console.error("Error: ", error);
@@ -181,7 +180,7 @@ document.addEventListener("alpine:init", function () {
             this.loading = false;
         }
     }); });
-    var baseControl = function (selector, required, validaciones) {
+    var baseControl = function (field, selector, required, validaciones) {
         if (required === void 0) { required = false; }
         if (validaciones === void 0) { validaciones = []; }
         return ({
@@ -195,16 +194,18 @@ document.addEventListener("alpine:init", function () {
                 }
                 this.initControl();
                 this.$nextTick(function () {
-                    _this.$watch('value', function () {
+                    _this.$watch('value', function (value) {
                         _this.validate();
                     });
                 });
             },
             initControl: function () { },
             element: function () {
-                return this.$el.querySelector(selector);
+                var el = this.$el.querySelector(selector);
+                return el;
             },
             value: '',
+            field: field,
             required: required,
             validaciones: validaciones,
             validate: function () {
@@ -229,24 +230,39 @@ document.addEventListener("alpine:init", function () {
         });
     };
     // @ts-ignore
-    Alpine.data("textbox", function (required, validaciones) {
+    Alpine.data("textbox", function (field, required, validaciones) {
         if (required === void 0) { required = false; }
         if (validaciones === void 0) { validaciones = []; }
-        return __assign({}, baseControl("input", required, validaciones));
+        return __assign({}, baseControl(field, "input", required, validaciones));
     });
     // @ts-ignore
-    Alpine.data("textarea", function (required, validaciones) {
+    Alpine.data("textarea", function (field, required, validaciones) {
         if (required === void 0) { required = false; }
         if (validaciones === void 0) { validaciones = []; }
-        return __assign({}, baseControl("textarea", required, validaciones));
+        return __assign({}, baseControl(field, "textarea", required, validaciones));
     });
     // @ts-ignore
-    Alpine.data("select2", function () { return (__assign(__assign({}, baseControl), { initControl: function () {
-            var _a;
-            var $this = _this;
-            $this && $((_a = $this.$el) === null || _a === void 0 ? void 0 : _a.querySelector('select')).select2({
-                placeholder: 'Seleccione una opción',
-                allowClear: true
-            });
-        } })); });
+    Alpine.data("select2", function (field, ismulti, required, validaciones) {
+        if (ismulti === void 0) { ismulti = false; }
+        if (required === void 0) { required = false; }
+        if (validaciones === void 0) { validaciones = []; }
+        return (__assign(__assign({}, baseControl(field, "select", required, validaciones)), { ismulti: ismulti, initControl: function () {
+                var $this = this;
+                $($this.element()).select2({
+                    allowClear: true,
+                    multiple: this.ismulti
+                });
+                if ($this.registro[$this.field] && $this.registro[$this.field] !== '') {
+                    var val = $this.ismulti ? $this.registro[$this.field].split(";") : $this.registro[$this.field];
+                    console.log($this.field, val);
+                    $($this.element()).val(val);
+                    $($this.element()).trigger('change');
+                }
+                $($this.element()).on('change', function (e) {
+                    var val = $this.ismulti ? $(e.target).val().join(";") : $(e.target).val();
+                    $this.value = val;
+                    $this.$dispatch('change-select2', { value: val, field: $this.field });
+                });
+            } }));
+    });
 });

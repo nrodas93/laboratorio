@@ -33,7 +33,7 @@
         </div>
     </div>
     <div id="formulario">
-        <!--<iframe src="form.php" frameborder="0"></iframe>-->
+        <iframe src="form.php" frameborder="0"></iframe>
     </div>
     <div id="control_icono">
         <input type="text" id="sc_hidden_icono">
