@@ -1,7 +1,8 @@
 <?php
 
 function cargarModelo($table, $columns, $id, $campo_id = "id") {
-    sc_lookup($ds, "SELECT " . implode(", ", $columns) . " FROM " . $table . " WHERE $campo_id = " . $id . "");
+
+    sc_lookup($ds, "SELECT " . implode(", ", $columns) . " FROM " . $table . " WHERE $campo_id = " . is_numeric($id) ? $id : "'" . addslashes($id) . "'" );
     if (!empty($ds)) {
        return new class($ds[0]) {
           public function __construct($data) {
@@ -13,6 +14,7 @@ function cargarModelo($table, $columns, $id, $campo_id = "id") {
     }
     return null;
 }
+
 
 class ScModel {
     private $query;

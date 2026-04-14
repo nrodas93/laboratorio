@@ -19,7 +19,9 @@ function sc_exec_sql($query) {
     $r = db_query($query);
     return $r->rowCount();
 }
-
+function sc_sql_injection($query) {
+    return addslashes($query);
+}
 function db_query($query) {
     try {
         $pdo = new PDO("pgsql:host=localhost;dbname=test", "root", "", [

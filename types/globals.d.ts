@@ -22,6 +22,7 @@ declare global {
   }
   interface Window {
     validaciones: Array<Object>;
+    iconos: Array<{ name: string, icon: string }>;
   }
 }
 

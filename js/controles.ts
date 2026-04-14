@@ -1,3 +1,5 @@
+
+//@ts-ignore
 class Control implements AlpineComponent<Control> {
     $el: HTMLInputElement;
     $data: Control;
@@ -16,25 +18,15 @@ class Control implements AlpineComponent<Control> {
 
 
 class IconList extends Control {
-    iconos: Array<string>;
+    iconos: Array<{ name: string, icon: string }>;
     show: boolean;
     //value: string;
     constructor() {
         super();
         this.show = false;
         this.value = '';
-        this.iconos = [
-            'fa fa-home',
-            'fa fa-user',
-            'fa fa-cog',
-            'fa fa-star',
-            'fa fa-heart',
-            'fa fa-camera',
-            'fa fa-trash',
-            'fa fa-edit',
-            'fa fa-save',
-            'fa fa-cancel',
-        ];
+        //@ts-ignore
+        this.iconos = window.iconos as Array<{ name: string, icon: string }>;
     }
     iconClick(icon: string) {
         this.value = icon;
@@ -51,12 +43,21 @@ class IconList extends Control {
         container.style.flexWrap = 'wrap';
         container.style.gap = '10px';
         container.style.marginTop = '10px';
+        container.style.position = 'absolute';
+        container.style.zIndex = '1000';
+        container.style.backgroundColor = 'white';
+        container.style.border = '1px solid #ccc';
+        container.style.borderRadius = '5px';
+        container.style.padding = '10px';
+        container.style.width = '75vw';
+        container.style.height = '75vh';
         container.setAttribute("x-show", "show");
-        this.iconos.forEach((icono: string) => {
+        container.setAttribute("x-transition", "");
+        this.iconos.forEach((icono: { name: string, icon: string }) => {
             const icon = document.createElement('i');
-            icon.classList.add(...icono.split(' '));
-            icon.setAttribute("x-on:click", `iconClick('${icono}')`);
-
+            icon.classList.add('fa', 'fas', 'fa-2x', 'fab', ...icono.icon.split(' '));
+            icon.setAttribute("x-on:click", `iconClick('${icono.icon}')`);
+            icon.setAttribute("title", icono.name);
             container.appendChild(icon);
         });
 

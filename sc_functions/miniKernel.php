@@ -1,14 +1,27 @@
 <?php
 
     class MiniKernel {
-        public static function process($callback) {
-            $request = [
+            
+        private static function Request() {
+            return [
                 'method' => $_SERVER['REQUEST_METHOD'],
                 'url' => $_SERVER['REQUEST_URI'],
                 'data' => $_REQUEST,
                 'body' => json_decode(file_get_contents('php://input'), true) ?? $_POST,
                 'query' => $_GET
             ];
+        }   
+        public static function routes($routes) {
+            $request = self::Request();
+            foreach ($routes as $route) {
+                if ($route['method'] == $request['method'] && $route['url'] == $request['url']) {
+                    $response = $route['callback']($request);
+                    self::sendRespone($response);
+                }
+            }
+        }
+        public static function process($callback) {
+            $request = self::Request();
             try {
                 $response = $callback($request);
                 self::sendRespone($response);

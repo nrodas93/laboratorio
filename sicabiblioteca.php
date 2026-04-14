@@ -38,8 +38,16 @@
     <div id="control_icono">
         <input type="text" id="sc_hidden_icono">
     </div>
+    <style>
 
 
+
+i {
+    display: none;
+}
+    </style>
+
+    <script src="js/iconos.js?<?php echo time(); ?>"></script>
     <script src="js/formulario-dinamico.js?<?php echo time(); ?>"></script>
     <script src="js/controles.js?<?php echo time(); ?>"></script>
     <script defer>

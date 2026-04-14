@@ -13,6 +13,16 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+//@ts-ignore
 var Control = /** @class */ (function () {
     function Control() {
     }
@@ -22,22 +32,13 @@ var Control = /** @class */ (function () {
 }());
 var IconList = /** @class */ (function (_super) {
     __extends(IconList, _super);
+    //value: string;
     function IconList() {
         var _this = _super.call(this) || this;
         _this.show = false;
         _this.value = '';
-        _this.iconos = [
-            'fa fa-home',
-            'fa fa-user',
-            'fa fa-cog',
-            'fa fa-star',
-            'fa fa-heart',
-            'fa fa-camera',
-            'fa fa-trash',
-            'fa fa-edit',
-            'fa fa-save',
-            'fa fa-cancel',
-        ];
+        //@ts-ignore
+        _this.iconos = window.iconos;
         return _this;
     }
     IconList.prototype.iconClick = function (icon) {
@@ -55,12 +56,22 @@ var IconList = /** @class */ (function (_super) {
         container.style.flexWrap = 'wrap';
         container.style.gap = '10px';
         container.style.marginTop = '10px';
+        container.style.position = 'absolute';
+        container.style.zIndex = '1000';
+        container.style.backgroundColor = 'white';
+        container.style.border = '1px solid #ccc';
+        container.style.borderRadius = '5px';
+        container.style.padding = '10px';
+        container.style.width = '75vw';
+        container.style.height = '75vh';
         container.setAttribute("x-show", "show");
+        container.setAttribute("x-transition", "");
         this.iconos.forEach(function (icono) {
             var _a;
             var icon = document.createElement('i');
-            (_a = icon.classList).add.apply(_a, icono.split(' '));
-            icon.setAttribute("x-on:click", "iconClick('".concat(icono, "')"));
+            (_a = icon.classList).add.apply(_a, __spreadArray(['fa', 'fas', 'fa-2x', 'fab'], icono.icon.split(' '), false));
+            icon.setAttribute("x-on:click", "iconClick('".concat(icono.icon, "')"));
+            icon.setAttribute("title", icono.name);
             container.appendChild(icon);
         });
         if (el) {
@@ -80,3 +91,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // @ts-ignore
     Alpine.data('IconList', function () { return new IconList(); });
 });
+function inicializarControl(control, contenedor) {
+    var el;
+    if (typeof contenedor === 'string') {
+        el = document.querySelector(contenedor);
+    }
+    else {
+        el = contenedor;
+    }
+    if (el) {
+        el.setAttribute("x-data", control);
+    }
+}
